@@ -1,23 +1,12 @@
-# Rosmosis
+# pbf-craft
 
-## Basic usage
+<!-- [![crates.io version][crates-io-shields]][crates-io]
+[![docs.rs][docs-rs-shields]][docs-rs]
+[![GitHub Workflow Status][actions-shields]][actions] -->
 
-Find an element
+[![License][license-shields]][license]
 
-`rosmosis search -f ./singapore.osm.pbf --eltype way --elid 1005871625`
+A Rust library and command-line tool for reading and writing OpenSteetMap PBF file format.
 
-Find an element and the elements associated with it
-
-`rosmosis search -f ./singapore.osm.pbf --eltype way --elid 1005871625 -e false`
-
-Find elements by tag
-
-`rosmosis search -f ./singapore.osm.pbf --tagkey highway --tagvalue motorway`
-
-Find elements by a node pair
-
-`rosmosis search -f ./singapore.osm.pbf --pair 100052832 --pair 100003223`
-
-For help
-
-`rosmosis help`
+- Written in pure Rust
+- Provides an indexing feature to the PBF to greatly improve read performance.
