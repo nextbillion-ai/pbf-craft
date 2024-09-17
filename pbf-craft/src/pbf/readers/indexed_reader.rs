@@ -383,6 +383,7 @@ impl<T: PbfRandomRead> IndexedReader<T> {
             return Ok(Vec::with_capacity(0));
         }
         let relation = relation.unwrap();
+        result.push(ElementContainer::Relation(relation.clone()));
 
         let node_ids: Vec<i64> = relation
             .members

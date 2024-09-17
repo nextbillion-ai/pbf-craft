@@ -1,5 +1,4 @@
 use chrono::{DateTime, Utc};
-use postgres_types::{FromSql, ToSql};
 use serde::{Deserialize, Serialize};
 use std::str::FromStr;
 
@@ -36,14 +35,10 @@ impl ElementContainer {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, ToSql, FromSql)]
-#[postgres(name = "nwr_enum")]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum ElementType {
-    #[postgres(name = "Node")]
     Node,
-    #[postgres(name = "Way")]
     Way,
-    #[postgres(name = "Relation")]
     Relation,
 }
 

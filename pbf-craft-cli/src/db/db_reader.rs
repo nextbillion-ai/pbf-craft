@@ -5,9 +5,31 @@ use pbf_craft::models::{
 };
 use postgres::config::Config;
 use postgres::NoTls;
+use postgres_types::{FromSql, ToSql};
 
 pub struct DatabaseReader {
     config: Config,
+}
+
+#[derive(Debug, ToSql, FromSql)]
+#[postgres(name = "nwr_enum")]
+pub enum DbElementType {
+    #[postgres(name = "Node")]
+    Node,
+    #[postgres(name = "Way")]
+    Way,
+    #[postgres(name = "Relation")]
+    Relation,
+}
+
+impl Into<ElementType> for DbElementType {
+    fn into(self) -> ElementType {
+        match self {
+            DbElementType::Node => ElementType::Node,
+            DbElementType::Way => ElementType::Way,
+            DbElementType::Relation => ElementType::Relation,
+        }
+    }
 }
 
 impl DatabaseReader {
@@ -291,7 +313,8 @@ impl DatabaseReader {
                 }
                 let mem_row = has_mem.unwrap();
                 current_mem_id = mem_row.get(0);
-                let member_type: ElementType = mem_row.get(1);
+                let db_member_type: DbElementType = mem_row.get(1);
+                let member_type: ElementType = db_member_type.into();
                 let member_id: i64 = mem_row.get(2);
                 let member_role: String = mem_row.get(3);
                 let member = RelationMember {
