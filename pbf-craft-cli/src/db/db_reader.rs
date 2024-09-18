@@ -1,7 +1,7 @@
 use crate::db::paging_cursor::PagingCursor;
 use chrono::{DateTime, NaiveDateTime, Utc};
 use pbf_craft::models::{
-    ElementContainer, ElementType, Node, OsmUser, Relation, RelationMember, Tag, Way, WayNode,
+    Element, ElementType, Node, OsmUser, Relation, RelationMember, Tag, Way, WayNode,
 };
 use postgres::config::Config;
 use postgres::NoTls;
@@ -46,7 +46,7 @@ impl DatabaseReader {
 
     pub fn read<F>(&self, mut callback: F) -> anyhow::Result<()>
     where
-        F: FnMut(ElementContainer),
+        F: FnMut(Element),
     {
         blue_ln!("Exporting nodes ...");
         self.read_nodes(&mut callback)?;
@@ -60,7 +60,7 @@ impl DatabaseReader {
 
     fn read_nodes<F>(&self, callback: &mut F) -> anyhow::Result<()>
     where
-        F: FnMut(ElementContainer),
+        F: FnMut(Element),
     {
         let mut el_client = self.config.connect(NoTls)?;
         let node_cursor = PagingCursor::new(
@@ -123,7 +123,7 @@ impl DatabaseReader {
                     current_tag = Some(tag);
                 }
             }
-            let el = ElementContainer::Node(node);
+            let el = Element::Node(node);
             callback(el)
         }
 
@@ -132,7 +132,7 @@ impl DatabaseReader {
 
     fn read_ways<F>(&self, callback: &mut F) -> anyhow::Result<()>
     where
-        F: FnMut(ElementContainer),
+        F: FnMut(Element),
     {
         let mut el_client = self.config.connect(NoTls)?;
         let el_cursor = PagingCursor::new(
@@ -225,7 +225,7 @@ impl DatabaseReader {
                 }
             }
 
-            let el = ElementContainer::Way(way);
+            let el = Element::Way(way);
             callback(el)
         }
 
@@ -234,7 +234,7 @@ impl DatabaseReader {
 
     fn read_relations<F>(&self, callback: &mut F) -> anyhow::Result<()>
     where
-        F: FnMut(ElementContainer),
+        F: FnMut(Element),
     {
         let mut el_client = self.config.connect(NoTls)?;
         let el_cursor = PagingCursor::new(
@@ -329,7 +329,7 @@ impl DatabaseReader {
                 }
             }
 
-            let el = ElementContainer::Relation(relation);
+            let el = Element::Relation(relation);
             callback(el)
         }
 

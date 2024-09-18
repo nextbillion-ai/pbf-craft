@@ -19,18 +19,18 @@ pub struct OsmUser {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type")]
-pub enum ElementContainer {
+pub enum Element {
     Node(Node),
     Way(Way),
     Relation(Relation),
 }
 
-impl ElementContainer {
+impl Element {
     pub fn get_meta(&self) -> (ElementType, i64) {
         match self {
-            ElementContainer::Node(e) => (ElementType::Node, e.id),
-            ElementContainer::Way(e) => (ElementType::Way, e.id),
-            ElementContainer::Relation(e) => (ElementType::Relation, e.id),
+            Element::Node(e) => (ElementType::Node, e.id),
+            Element::Way(e) => (ElementType::Way, e.id),
+            Element::Relation(e) => (ElementType::Relation, e.id),
         }
     }
 }

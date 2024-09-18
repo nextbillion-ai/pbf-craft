@@ -5,7 +5,7 @@ use std::{
 
 use super::raw_reader::PbfReader;
 use super::traits::BlobData;
-use crate::models::{ElementContainer, ElementType};
+use crate::models::{Element, ElementType};
 
 pub struct IterableReader<R: Read + Send> {
     pbf_reader: PbfReader<R>,
@@ -24,14 +24,14 @@ impl<R: Read + Send> IterableReader<R> {
         }
     }
 
-    pub fn next_element(&mut self) -> Option<ElementContainer> {
+    pub fn next_element(&mut self) -> Option<Element> {
         loop {
             if let Some(blob) = &self.current_blob {
                 if ElementType::Node == self.current_element_type {
                     if self.current_element_index < blob.nodes.len() {
                         let node = blob.nodes.get(self.current_element_index).unwrap();
                         self.current_element_index += 1;
-                        return Some(ElementContainer::Node(node.clone()));
+                        return Some(Element::Node(node.clone()));
                     } else {
                         self.current_element_type = ElementType::Way;
                         self.current_element_index = 0;
@@ -41,7 +41,7 @@ impl<R: Read + Send> IterableReader<R> {
                     if self.current_element_index < blob.ways.len() {
                         let way = blob.ways.get(self.current_element_index).unwrap();
                         self.current_element_index += 1;
-                        return Some(ElementContainer::Way(way.clone()));
+                        return Some(Element::Way(way.clone()));
                     } else {
                         self.current_element_type = ElementType::Relation;
                         self.current_element_index = 0;
@@ -51,7 +51,7 @@ impl<R: Read + Send> IterableReader<R> {
                     if self.current_element_index < blob.relations.len() {
                         let relation = blob.relations.get(self.current_element_index).unwrap();
                         self.current_element_index += 1;
-                        return Some(ElementContainer::Relation(relation.clone()));
+                        return Some(Element::Relation(relation.clone()));
                     } else {
                         self.current_blob = self.pbf_reader.read_next_blob();
                         self.current_element_type = ElementType::Node;
@@ -66,7 +66,7 @@ impl<R: Read + Send> IterableReader<R> {
 }
 
 impl<R: Read + Send> Iterator for IterableReader<R> {
-    type Item = ElementContainer;
+    type Item = Element;
 
     fn next(&mut self) -> Option<Self::Item> {
         self.next_element()

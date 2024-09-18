@@ -6,9 +6,12 @@ authors = ["Lurker <cloverzero@gmail.com>"]
 repository = "https://github.com/nextbillion-ai/pbf-craft"
 homepage = "https://github.com/nextbillion-ai/pbf-craft"
 description = "A Rust library for reading and writing OpenSteetMap PBF file format."
+readme = "README.md"
 categories = ["Encoding"]
 keywords = ["openstreetmap", "osm", "pbf", "protocolbuffer", "protobuf"]
 license = "MIT"
+
+exclude = ["resources"]
 
 [dependencies]
 anyhow = { version = "1.0", features = ["backtrace"] }

@@ -8,7 +8,7 @@ use flate2::write::ZlibEncoder;
 use flate2::Compression;
 use protobuf::Message;
 
-use crate::models::{Bound, ElementContainer};
+use crate::models::{Bound, Element};
 use crate::pbf::codecs::block_builder::PrimitiveBuilder;
 use crate::pbf::proto::{fileformat, osmformat};
 
@@ -18,7 +18,7 @@ pub struct PbfWriter<W: Write> {
     writer: W,
     use_dense: bool,
     bbox: Option<Bound>,
-    cache: Vec<ElementContainer>,
+    cache: Vec<Element>,
     has_writen_header: bool,
 }
 
@@ -84,7 +84,7 @@ impl<W: Write> PbfWriter<W> {
         Ok(())
     }
 
-    pub fn write(&mut self, element: ElementContainer) -> anyhow::Result<()> {
+    pub fn write(&mut self, element: Element) -> anyhow::Result<()> {
         self.cache.push(element);
         if self.cache.len() >= MAX_BLOCK_ITEM_LENGTH {
             self.write_to_block()?;
