@@ -1,9 +1,7 @@
 use std::io::Write;
 
 static MOD_RS: &[u8] = b"
-/// Generated from protobuf.
 pub mod fileformat;
-/// Generated from protobuf.
 pub mod osmformat;
 ";
 
