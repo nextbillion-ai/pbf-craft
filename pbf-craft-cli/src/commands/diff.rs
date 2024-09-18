@@ -4,7 +4,7 @@ use clap::Args;
 use csv;
 use serde::{Deserialize, Serialize};
 
-use pbf_craft::models::{ElementContainer, ElementType};
+use pbf_craft::models::{Element, ElementType};
 use pbf_craft::pbf::readers::IterableReader;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -56,8 +56,8 @@ impl DiffCommand {
                 (Some(source_element), Some(target_element)) => {
                     match (source_element, target_element) {
                         (
-                            ElementContainer::Node(source_element),
-                            ElementContainer::Node(target_element),
+                            Element::Node(source_element),
+                            Element::Node(target_element),
                         ) => {
                             if source_element.id == target_element.id {
                                 if source_element != target_element {
@@ -91,7 +91,7 @@ impl DiffCommand {
                                 target_element_cnt = target.next();
                             }
                         }
-                        (ElementContainer::Node(source_element), ElementContainer::Way(_)) => {
+                        (Element::Node(source_element), Element::Way(_)) => {
                             diff_csv
                                 .serialize(ElementDiff {
                                     element_type: ElementType::Node,
@@ -101,7 +101,7 @@ impl DiffCommand {
                                 .unwrap();
                             source_element_cnt = source.next();
                         }
-                        (ElementContainer::Way(_), ElementContainer::Node(target_element)) => {
+                        (Element::Way(_), Element::Node(target_element)) => {
                             diff_csv
                                 .serialize(ElementDiff {
                                     element_type: ElementType::Node,
@@ -112,8 +112,8 @@ impl DiffCommand {
                             target_element_cnt = target.next();
                         }
                         (
-                            ElementContainer::Way(source_element),
-                            ElementContainer::Way(target_element),
+                            Element::Way(source_element),
+                            Element::Way(target_element),
                         ) => {
                             if source_element.id == target_element.id {
                                 if source_element != target_element {
@@ -147,7 +147,7 @@ impl DiffCommand {
                                 target_element_cnt = target.next();
                             }
                         }
-                        (ElementContainer::Way(source_way), ElementContainer::Relation(_)) => {
+                        (Element::Way(source_way), Element::Relation(_)) => {
                             diff_csv
                                 .serialize(ElementDiff {
                                     element_type: ElementType::Way,
@@ -157,7 +157,7 @@ impl DiffCommand {
                                 .unwrap();
                             source_element_cnt = source.next();
                         }
-                        (ElementContainer::Relation(_), ElementContainer::Way(target_way)) => {
+                        (Element::Relation(_), Element::Way(target_way)) => {
                             diff_csv
                                 .serialize(ElementDiff {
                                     element_type: ElementType::Way,
@@ -168,8 +168,8 @@ impl DiffCommand {
                             target_element_cnt = target.next();
                         }
                         (
-                            ElementContainer::Relation(source_element),
-                            ElementContainer::Relation(target_element),
+                            Element::Relation(source_element),
+                            Element::Relation(target_element),
                         ) => {
                             if source_element.id == target_element.id {
                                 if source_element != target_element {
@@ -203,7 +203,7 @@ impl DiffCommand {
                                 target_element_cnt = target.next();
                             }
                         }
-                        (ElementContainer::Relation(_), ElementContainer::Node(target_node)) => {
+                        (Element::Relation(_), Element::Node(target_node)) => {
                             diff_csv
                                 .serialize(ElementDiff {
                                     element_type: ElementType::Node,
@@ -213,7 +213,7 @@ impl DiffCommand {
                                 .unwrap();
                             target_element_cnt = target.next();
                         }
-                        (ElementContainer::Node(source_node), ElementContainer::Relation(_)) => {
+                        (Element::Node(source_node), Element::Relation(_)) => {
                             diff_csv
                                 .serialize(ElementDiff {
                                     element_type: ElementType::Node,

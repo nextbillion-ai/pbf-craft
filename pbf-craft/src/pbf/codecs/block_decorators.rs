@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use super::field::FieldCodec;
 use crate::models::{
-    BaseElement, Bound, ElementContainer, ElementType, Node, OsmUser, Relation, RelationMember,
+    BaseElement, Bound, Element, ElementType, Node, OsmUser, Relation, RelationMember,
     Tag, Way, WayNode,
 };
 use crate::pbf::proto::osmformat;
@@ -128,27 +128,27 @@ impl PrimitiveReader {
         (nodes, ways, relations)
     }
 
-    pub fn for_each_element<F: FnMut(ElementContainer)>(&self, mut callback: F) {
+    pub fn for_each_element<F: FnMut(Element)>(&self, mut callback: F) {
         for group in self.block.get_primitivegroup() {
             if group.has_dense() {
                 let nodes = self.process_dense(group.get_dense());
                 for node in nodes {
-                    callback(ElementContainer::Node(node));
+                    callback(Element::Node(node));
                 }
             }
             let nodes = self.process_nodes(group.get_nodes());
             for node in nodes {
-                callback(ElementContainer::Node(node));
+                callback(Element::Node(node));
             }
 
             let ways = self.process_ways(group.get_ways());
             for way in ways {
-                callback(ElementContainer::Way(way));
+                callback(Element::Way(way));
             }
 
             let relations = self.process_relations(group.get_relations());
             for relation in relations {
-                callback(ElementContainer::Relation(relation));
+                callback(Element::Relation(relation));
             }
         }
     }

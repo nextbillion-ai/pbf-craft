@@ -6,7 +6,7 @@ use std::path::Path;
 use std::rc::Rc;
 
 use super::traits::{BlobData, PbfRandomRead};
-use crate::models::{ElementContainer, ElementType, Tag};
+use crate::models::{Element, ElementType, Tag};
 use crate::pbf::codecs::blob::{BlobReader, DecodedBlob};
 use crate::pbf::codecs::block_decorators::{HeaderReader, PrimitiveReader};
 
@@ -54,7 +54,7 @@ impl<R: Read + Send> PbfReader<R> {
 
     pub fn read<F>(&mut self, mut callback: F) -> anyhow::Result<()>
     where
-        F: FnMut(Option<HeaderReader>, Option<ElementContainer>),
+        F: FnMut(Option<HeaderReader>, Option<Element>),
     {
         for blob in &mut self.blob_reader {
             match blob.decode()? {
@@ -106,9 +106,9 @@ impl<R: Read + Send> PbfReader<R> {
         self,
         inclination: Option<&ElementType>,
         callback: F,
-    ) -> anyhow::Result<Vec<ElementContainer>>
+    ) -> anyhow::Result<Vec<Element>>
     where
-        F: Fn(&ElementContainer) -> bool + Send + Sync,
+        F: Fn(&Element) -> bool + Send + Sync,
     {
         let result = self
             .blob_reader
@@ -125,38 +125,38 @@ impl<R: Read + Send> PbfReader<R> {
                         ElementType::Node => p
                             .get_nodes()
                             .into_iter()
-                            .map(|i| ElementContainer::Node(i))
+                            .map(|i| Element::Node(i))
                             .filter(&callback)
-                            .collect::<Vec<ElementContainer>>(),
+                            .collect::<Vec<Element>>(),
                         ElementType::Way => p
                             .get_ways()
                             .into_iter()
-                            .map(|i| ElementContainer::Way(i))
+                            .map(|i| Element::Way(i))
                             .filter(&callback)
-                            .collect::<Vec<ElementContainer>>(),
+                            .collect::<Vec<Element>>(),
                         ElementType::Relation => p
                             .get_relations()
                             .into_iter()
-                            .map(|i| ElementContainer::Relation(i))
+                            .map(|i| Element::Relation(i))
                             .filter(&callback)
-                            .collect::<Vec<ElementContainer>>(),
+                            .collect::<Vec<Element>>(),
                     };
                     Some(result)
                 } else {
                     let (nodes, ways, relations) = p.get_all_elements();
-                    let mut filterd_nodes: Vec<ElementContainer> = nodes
+                    let mut filterd_nodes: Vec<Element> = nodes
                         .into_iter()
-                        .map(|i| ElementContainer::Node(i))
+                        .map(|i| Element::Node(i))
                         .filter(&callback)
                         .collect();
-                    let mut filterd_ways: Vec<ElementContainer> = ways
+                    let mut filterd_ways: Vec<Element> = ways
                         .into_iter()
-                        .map(|i| ElementContainer::Way(i))
+                        .map(|i| Element::Way(i))
                         .filter(&callback)
                         .collect();
-                    let mut filterd_relations: Vec<ElementContainer> = relations
+                    let mut filterd_relations: Vec<Element> = relations
                         .into_iter()
-                        .map(|i| ElementContainer::Relation(i))
+                        .map(|i| Element::Relation(i))
                         .filter(&callback)
                         .collect();
 
@@ -176,14 +176,10 @@ impl<R: Read + Send> PbfReader<R> {
         Ok(result)
     }
 
-    pub fn find_all_by_id(
-        self,
-        element_type: &ElementType,
-        element_id: i64,
-    ) -> Vec<ElementContainer> {
+    pub fn find_all_by_id(self, element_type: &ElementType, element_id: i64) -> Vec<Element> {
         self.par_find(None, |element| match (element, &element_type) {
-            (ElementContainer::Node(node), ElementType::Node) => node.id == element_id,
-            (ElementContainer::Way(way), ElementType::Node) => {
+            (Element::Node(node), ElementType::Node) => node.id == element_id,
+            (Element::Way(way), ElementType::Node) => {
                 for way_node in &way.way_nodes {
                     if way_node.id == element_id {
                         return true;
@@ -191,11 +187,9 @@ impl<R: Read + Send> PbfReader<R> {
                 }
                 return false;
             }
-            (ElementContainer::Way(way), ElementType::Way) => way.id == element_id,
-            (ElementContainer::Relation(relation), ElementType::Relation) => {
-                relation.id == element_id
-            }
-            (ElementContainer::Relation(relation), _) => {
+            (Element::Way(way), ElementType::Way) => way.id == element_id,
+            (Element::Relation(relation), ElementType::Relation) => relation.id == element_id,
+            (Element::Relation(relation), _) => {
                 for member in &relation.members {
                     if member.member_id == element_id && member.member_type.eq(element_type) {
                         return true;
@@ -208,17 +202,11 @@ impl<R: Read + Send> PbfReader<R> {
         .expect("read pbf failed")
     }
 
-    pub fn find_all_by_tag(
-        self,
-        key: &Option<String>,
-        value: &Option<String>,
-    ) -> Vec<ElementContainer> {
+    pub fn find_all_by_tag(self, key: &Option<String>, value: &Option<String>) -> Vec<Element> {
         self.par_find(None, |element| match element {
-            ElementContainer::Node(node) => Self::does_tag_match(&node.tags, &key, &value),
-            ElementContainer::Way(way) => Self::does_tag_match(&way.tags, &key, &value),
-            ElementContainer::Relation(relation) => {
-                Self::does_tag_match(&relation.tags, &key, &value)
-            }
+            Element::Node(node) => Self::does_tag_match(&node.tags, &key, &value),
+            Element::Way(way) => Self::does_tag_match(&way.tags, &key, &value),
+            Element::Relation(relation) => Self::does_tag_match(&relation.tags, &key, &value),
         })
         .expect("read pbf failed")
     }

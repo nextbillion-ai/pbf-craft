@@ -3,7 +3,7 @@ use std::str::FromStr;
 use clap::Args;
 use colored_json::prelude::*;
 
-use pbf_craft::models::{ElementContainer, ElementType};
+use pbf_craft::models::{Element, ElementType};
 use pbf_craft::pbf::readers::{IndexedReader, PbfReader};
 
 #[derive(Args, Debug)]
@@ -95,7 +95,7 @@ impl SearchCommand {
             let reader = PbfReader::from_path(&self.file).unwrap();
             reader
                 .par_find(Some(&ElementType::Way), |el| {
-                    if let ElementContainer::Way(way) = el {
+                    if let Element::Way(way) = el {
                         return way.way_nodes.iter().any(|ref_node| ref_node.id == first)
                             && way.way_nodes.iter().any(|ref_node| ref_node.id == second);
                     }

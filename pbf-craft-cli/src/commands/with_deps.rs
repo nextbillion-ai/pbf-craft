@@ -4,7 +4,7 @@ use clap::Args;
 use colored_json::prelude::*;
 use serde_json;
 
-use pbf_craft::models::{ElementContainer, ElementType};
+use pbf_craft::models::{Element, ElementType};
 use pbf_craft::pbf::readers::IndexedReader;
 
 #[derive(Args, Debug)]
@@ -45,7 +45,7 @@ impl GetCommand {
         blue!("with dependencies");
         println!("...");
 
-        let result: Vec<ElementContainer> = indexed_reader
+        let result: Vec<Element> = indexed_reader
             .get_with_deps(&element_type, self.elid)
             .unwrap();
 

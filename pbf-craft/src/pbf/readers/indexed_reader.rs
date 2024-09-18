@@ -10,7 +10,7 @@ use byteorder::{LittleEndian, ReadBytesExt, WriteBytesExt};
 use super::cached_reader::CachedReader;
 use super::raw_reader::PbfReader;
 use super::traits::PbfRandomRead;
-use crate::models::{ElementContainer, ElementType, Node, Relation, Way};
+use crate::models::{Element, ElementType, Node, Relation, Way};
 use crate::utils::file;
 
 fn get_index_path_from_pbf_path(pbf_path: &str) -> String {
@@ -312,28 +312,28 @@ impl<T: PbfRandomRead> IndexedReader<T> {
         &mut self,
         element_type: &ElementType,
         element_id: i64,
-    ) -> anyhow::Result<Option<ElementContainer>> {
+    ) -> anyhow::Result<Option<Element>> {
         let target = match element_type {
             ElementType::Node => {
                 let t = self.find_node(element_id)?;
                 if t.is_none() {
                     return Ok(None);
                 }
-                ElementContainer::Node(t.unwrap())
+                Element::Node(t.unwrap())
             }
             ElementType::Way => {
                 let t = self.find_way(element_id)?;
                 if t.is_none() {
                     return Ok(None);
                 }
-                ElementContainer::Way(t.unwrap())
+                Element::Way(t.unwrap())
             }
             ElementType::Relation => {
                 let t = self.find_relation(element_id)?;
                 if t.is_none() {
                     return Ok(None);
                 }
-                ElementContainer::Relation(t.unwrap())
+                Element::Relation(t.unwrap())
             }
         };
         Ok(Some(target))
@@ -343,7 +343,7 @@ impl<T: PbfRandomRead> IndexedReader<T> {
         &mut self,
         element_type: &ElementType,
         element_id: i64,
-    ) -> anyhow::Result<Vec<ElementContainer>> {
+    ) -> anyhow::Result<Vec<Element>> {
         match element_type {
             ElementType::Node => {
                 let node = self.find_node(element_id)?;
@@ -351,14 +351,14 @@ impl<T: PbfRandomRead> IndexedReader<T> {
                     return Ok(Vec::with_capacity(0));
                 }
                 let node = node.unwrap();
-                Ok(vec![ElementContainer::Node(node)])
+                Ok(vec![Element::Node(node)])
             }
             ElementType::Way => self.get_way_with_deps(element_id),
             ElementType::Relation => self.get_relation_with_deps(element_id),
         }
     }
 
-    fn get_way_with_deps(&mut self, way_id: i64) -> anyhow::Result<Vec<ElementContainer>> {
+    fn get_way_with_deps(&mut self, way_id: i64) -> anyhow::Result<Vec<Element>> {
         let way = self.find_way(way_id)?;
         if way.is_none() {
             return Ok(Vec::with_capacity(0));
@@ -367,15 +367,15 @@ impl<T: PbfRandomRead> IndexedReader<T> {
         let node_ids: Vec<i64> = way.way_nodes.iter().map(|way_node| way_node.id).collect();
         let nodes = self.find_nodes(&node_ids)?;
 
-        let mut result: Vec<ElementContainer> = vec![ElementContainer::Way(way)];
-        result.extend(nodes.into_iter().map(|node| ElementContainer::Node(node)));
+        let mut result: Vec<Element> = vec![Element::Way(way)];
+        result.extend(nodes.into_iter().map(|node| Element::Node(node)));
         Ok(result)
     }
 
     fn get_relation_with_deps(
         &mut self,
         relation_id: i64,
-    ) -> anyhow::Result<Vec<ElementContainer>> {
+    ) -> anyhow::Result<Vec<Element>> {
         let mut result = Vec::new();
 
         let relation = self.find_relation(relation_id)?;
@@ -383,7 +383,7 @@ impl<T: PbfRandomRead> IndexedReader<T> {
             return Ok(Vec::with_capacity(0));
         }
         let relation = relation.unwrap();
-        result.push(ElementContainer::Relation(relation.clone()));
+        result.push(Element::Relation(relation.clone()));
 
         let node_ids: Vec<i64> = relation
             .members
@@ -398,7 +398,7 @@ impl<T: PbfRandomRead> IndexedReader<T> {
             .collect();
         self.find_nodes(node_ids.as_slice())?
             .into_iter()
-            .for_each(|node| result.push(ElementContainer::Node(node)));
+            .for_each(|node| result.push(Element::Node(node)));
 
         let way_ids: Vec<i64> = relation
             .members
@@ -475,7 +475,7 @@ mod tests {
         let mut indexed_reader = IndexedReader::from_path(pbf_file).unwrap();
         let target_op = indexed_reader.find(&ElementType::Node, 4254529698).unwrap();
         let target = target_op.unwrap();
-        if let ElementContainer::Node(node) = target {
+        if let Element::Node(node) = target {
             assert_eq!(node.id, 4254529698);
         } else {
             assert!(false);
@@ -483,7 +483,7 @@ mod tests {
 
         let target_op = indexed_reader.find(&ElementType::Way, 1055523837).unwrap();
         let target = target_op.unwrap();
-        if let ElementContainer::Way(way) = target {
+        if let Element::Way(way) = target {
             assert_eq!(way.id, 1055523837);
         } else {
             assert!(false);

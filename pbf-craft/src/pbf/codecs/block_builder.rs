@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use protobuf::RepeatedField;
 
 use super::field::FieldCodec;
-use crate::models::{ElementContainer, ElementType, Node, Relation, Tag, Way};
+use crate::models::{Element, ElementType, Node, Relation, Tag, Way};
 use crate::pbf::proto::osmformat;
 
 struct StringTableBuilder {
@@ -288,7 +288,7 @@ impl PrimitiveBuilder {
 
     pub fn build(
         mut self,
-        elements: Vec<ElementContainer>,
+        elements: Vec<Element>,
         use_dense: bool,
     ) -> osmformat::PrimitiveBlock {
         let mut nodes = Vec::new();
@@ -296,9 +296,9 @@ impl PrimitiveBuilder {
         let mut relations = Vec::new();
         for element in elements {
             match element {
-                ElementContainer::Node(node) => nodes.push(node),
-                ElementContainer::Way(way) => ways.push(way),
-                ElementContainer::Relation(relation) => relations.push(relation),
+                Element::Node(node) => nodes.push(node),
+                Element::Way(way) => ways.push(way),
+                Element::Relation(relation) => relations.push(relation),
             }
         }
         if nodes.len() > 0 {
