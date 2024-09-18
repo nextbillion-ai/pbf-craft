@@ -17,7 +17,10 @@ pbf-craft = "0.1"
 Reading a PBF file:
 
 ```rust
-let reader = PbfReader::from_path(&self.file).unwrap();
+use pbf_craft::models::{Element, ElementType};
+use pbf_craft::pbf::readers::PbfReader;
+
+let reader = PbfReader::from_path("./tokyo.pbf").unwrap();
 reader
     .par_find(Some(&ElementType::Way), |el| {
         if let Element::Way(way) = el {
@@ -32,6 +35,9 @@ reader
 Finding an element using the index feature. `IndexedReader` creates an index file for the PBF file, which allows you to quickly locate and retrieve an element when looking for it using its ID.
 
 ```rust
-let mut indexed_reader = IndexedReader::from_path(&self.file).unwarp();
+use pbf_craft::models::{Element, ElementType};
+use pbf_craft::pbf::readers::IndexedReader;
+
+let mut indexed_reader = IndexedReader::from_path("./tokyo.pbf").unwarp();
 let node = indexed_reader.find(&ElementType::Node, 12345678).unwrap();
 ```

@@ -7,7 +7,7 @@ repository = "https://github.com/nextbillion-ai/pbf-craft"
 homepage = "https://github.com/nextbillion-ai/pbf-craft"
 description = "A Rust library for reading and writing OpenSteetMap PBF file format."
 readme = "README.md"
-categories = ["Encoding"]
+categories = ["encoding"]
 keywords = ["openstreetmap", "osm", "pbf", "protocolbuffer", "protobuf"]
 license = "MIT"
 
