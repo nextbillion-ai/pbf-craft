@@ -3,7 +3,7 @@ use std::str::FromStr;
 use clap::Args;
 use colored_json::prelude::*;
 
-use pbf_craft::models::{Element, ElementType};
+use pbf_craft::models::{Element, ElementType, Tag};
 use pbf_craft::pbf::readers::{IndexedReader, PbfReader};
 
 #[derive(Args, Debug)]
@@ -66,7 +66,33 @@ impl SearchCommand {
                 }
             } else {
                 let reader = PbfReader::from_path(&self.file).unwrap();
-                reader.find_all_by_id(&element_type, *elid)
+                reader
+                    .par_find(None, |element| match (element, &element_type) {
+                        (Element::Node(node), ElementType::Node) => node.id == *elid,
+                        (Element::Way(way), ElementType::Node) => {
+                            for way_node in &way.way_nodes {
+                                if way_node.id == *elid {
+                                    return true;
+                                }
+                            }
+                            return false;
+                        }
+                        (Element::Way(way), ElementType::Way) => way.id == *elid,
+                        (Element::Relation(relation), ElementType::Relation) => {
+                            relation.id == *elid
+                        }
+                        (Element::Relation(relation), _) => {
+                            for member in &relation.members {
+                                if member.member_id == *elid && member.member_type.eq(&element_type)
+                                {
+                                    return true;
+                                }
+                            }
+                            return false;
+                        }
+                        _ => false,
+                    })
+                    .expect("read pbf failed")
             }
         } else if self.tagkey.is_some() || self.tagvalue.is_some() {
             blue!("Searching ");
@@ -79,7 +105,15 @@ impl SearchCommand {
             );
             println!("...");
             let reader = PbfReader::from_path(&self.file).unwrap();
-            reader.find_all_by_tag(&self.tagkey, &self.tagvalue)
+            reader
+                .par_find(None, |element| match element {
+                    Element::Node(node) => does_tag_match(&node.tags, &self.tagkey, &self.tagvalue),
+                    Element::Way(way) => does_tag_match(&way.tags, &self.tagkey, &self.tagvalue),
+                    Element::Relation(relation) => {
+                        does_tag_match(&relation.tags, &self.tagkey, &self.tagvalue)
+                    }
+                })
+                .expect("read pbf failed")
         } else if self.pair.is_some() {
             let node_ids = self.pair.unwrap();
             if node_ids.len() < 2 {
@@ -116,4 +150,28 @@ impl SearchCommand {
         );
         println!("{} elemets found", result.len());
     }
+}
+
+fn does_tag_match(tags: &Vec<Tag>, key: &Option<String>, value: &Option<String>) -> bool {
+    for tag in tags {
+        match (key, value) {
+            (Some(k), Some(v)) => {
+                if tag.key.contains(k) && tag.value.contains(v) {
+                    return true;
+                }
+            }
+            (Some(k), None) => {
+                if tag.key.contains(k) {
+                    return true;
+                }
+            }
+            (None, Some(v)) => {
+                if tag.value.contains(v) {
+                    return true;
+                }
+            }
+            (None, None) => return true,
+        }
+    }
+    false
 }

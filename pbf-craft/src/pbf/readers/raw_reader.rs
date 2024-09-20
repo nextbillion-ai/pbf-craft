@@ -6,15 +6,35 @@ use std::path::Path;
 use std::rc::Rc;
 
 use super::traits::{BlobData, PbfRandomRead};
-use crate::models::{Element, ElementType, Tag};
+use crate::models::{Element, ElementType};
 use crate::pbf::codecs::blob::{BlobReader, DecodedBlob};
 use crate::pbf::codecs::block_decorators::{HeaderReader, PrimitiveReader};
 
+/// A reader for Protocolbuffer Binary Format (PBF) files.
+///
+/// The `PbfReader` struct provides functionality to read and process PBF files,
+/// which are commonly used for storing OpenStreetMap (OSM) data. It wraps around
+/// a `BlobReader` to handle the low-level reading of blobs from the input source.
+///
+/// # Type Parameters
+///
+/// * `R` - A type that implements the `Read` and `Send` traits. This is typically
+///   a file or a network stream from which the PBF data is read.
+///
+/// # Example
+///
+/// ```rust
+/// use pbf::readers::raw_reader::PbfReader;
+///
+/// let reader = PbfReader::from_path("path/to/osm.pbf").unwrap();
+/// // Use the reader to process the PBF file
+/// ```
 pub struct PbfReader<R: Read + Send> {
     blob_reader: BlobReader<R>,
 }
 
 impl<R: Read + Send> PbfReader<R> {
+    /// Creates a new `PbfReader` instance with the specified reader which implements `Read` and `Send` traits.
     pub fn new(reader: R) -> PbfReader<R> {
         Self {
             blob_reader: BlobReader::new(reader),
@@ -69,37 +89,6 @@ impl<R: Read + Send> PbfReader<R> {
             }
         }
         Ok(())
-    }
-
-    pub fn max_ids(self) -> anyhow::Result<(i64, i64, i64)> {
-        let result = self
-            .blob_reader
-            .par_bridge()
-            .filter_map(
-                |blob| match blob.decode().expect("decode raw blob failed.") {
-                    DecodedBlob::OsmHeader(_) => None,
-                    DecodedBlob::OsmData(b) => Some(PrimitiveReader::new(b)),
-                },
-            )
-            .map(|p| {
-                let (nodes, ways, relations) = p.get_all_elements();
-                let node_id = nodes.into_iter().map(|e| e.id).max().or(Some(0)).unwrap();
-                let way_id = ways.into_iter().map(|e| e.id).max().or(Some(0)).unwrap();
-                let relation_id = relations
-                    .into_iter()
-                    .map(|e| e.id)
-                    .max()
-                    .or(Some(0))
-                    .unwrap();
-
-                (node_id, way_id, relation_id)
-            })
-            .reduce(
-                || (0, 0, 0),
-                |a, b| (a.0.max(b.0), a.1.max(b.1), a.2.max(b.2)),
-            );
-
-        Ok(result)
     }
 
     pub fn par_find<F>(
@@ -175,74 +164,17 @@ impl<R: Read + Send> PbfReader<R> {
 
         Ok(result)
     }
-
-    pub fn find_all_by_id(self, element_type: &ElementType, element_id: i64) -> Vec<Element> {
-        self.par_find(None, |element| match (element, &element_type) {
-            (Element::Node(node), ElementType::Node) => node.id == element_id,
-            (Element::Way(way), ElementType::Node) => {
-                for way_node in &way.way_nodes {
-                    if way_node.id == element_id {
-                        return true;
-                    }
-                }
-                return false;
-            }
-            (Element::Way(way), ElementType::Way) => way.id == element_id,
-            (Element::Relation(relation), ElementType::Relation) => relation.id == element_id,
-            (Element::Relation(relation), _) => {
-                for member in &relation.members {
-                    if member.member_id == element_id && member.member_type.eq(element_type) {
-                        return true;
-                    }
-                }
-                return false;
-            }
-            _ => false,
-        })
-        .expect("read pbf failed")
-    }
-
-    pub fn find_all_by_tag(self, key: &Option<String>, value: &Option<String>) -> Vec<Element> {
-        self.par_find(None, |element| match element {
-            Element::Node(node) => Self::does_tag_match(&node.tags, &key, &value),
-            Element::Way(way) => Self::does_tag_match(&way.tags, &key, &value),
-            Element::Relation(relation) => Self::does_tag_match(&relation.tags, &key, &value),
-        })
-        .expect("read pbf failed")
-    }
-
-    fn does_tag_match(tags: &Vec<Tag>, key: &Option<String>, value: &Option<String>) -> bool {
-        for tag in tags {
-            match (key, value) {
-                (Some(k), Some(v)) => {
-                    if tag.key.contains(k) && tag.value.contains(v) {
-                        return true;
-                    }
-                }
-                (Some(k), None) => {
-                    if tag.key.contains(k) {
-                        return true;
-                    }
-                }
-                (None, Some(v)) => {
-                    if tag.value.contains(v) {
-                        return true;
-                    }
-                }
-                (None, None) => return true,
-            }
-        }
-        false
-    }
 }
 
 impl PbfReader<BufReader<File>> {
+    /// Creates a new `PbfReader` instance with the specified file path.
     pub fn from_path<P: AsRef<Path>>(path: P) -> anyhow::Result<Self> {
         let f = File::open(path)?;
         let reader = BufReader::new(f);
         Ok(Self::new(reader))
     }
 
+    /// Rewinds the reader to the beginning of the file.
     pub fn rewind(&mut self) -> anyhow::Result<()> {
         self.blob_reader.rewind()
     }
