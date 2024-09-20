@@ -1,12 +1,32 @@
-use std::{
-    fs::File,
-    io::{BufReader, Read},
-};
+use std::fs::File;
+use std::io::{BufReader, Read};
+use std::path::Path;
 
 use super::raw_reader::PbfReader;
 use super::traits::BlobData;
 use crate::models::{Element, ElementType};
 
+/// A reader that provides an iterable interface for reading PBF (Protocolbuffer Binary Format) data.
+///
+/// The `IterableReader` struct allows for sequential reading of PBF data by iterating over blobs
+/// and elements. It is generic over a type `R` that implements the `Read` and `Send` traits, which
+/// provide the necessary methods for reading PBF data from a source.
+///
+/// # Type Parameters
+///
+/// * `R` - A type that implements the `Read` and `Send` traits, providing methods for reading PBF data.
+///
+/// # Example
+///
+/// ```rust
+/// use pbf_craft::models::{Element, ElementType};
+/// use pbf_craft::pbf::readers::IterableReader;
+///
+/// let mut reader = IterableReader::from_path("path/to/file.pbf").unwrap();
+/// for element in reader {
+///    // Process the element
+/// }
+/// ```
 pub struct IterableReader<R: Read + Send> {
     pbf_reader: PbfReader<R>,
     current_blob: Option<BlobData>,
@@ -15,6 +35,7 @@ pub struct IterableReader<R: Read + Send> {
 }
 
 impl<R: Read + Send> IterableReader<R> {
+    /// Creates a new `IterableReader` from a raw pbf reader.
     pub fn new(mut pbf_reader: PbfReader<R>) -> Self {
         Self {
             current_blob: pbf_reader.read_next_blob(),
@@ -24,7 +45,7 @@ impl<R: Read + Send> IterableReader<R> {
         }
     }
 
-    pub fn next_element(&mut self) -> Option<Element> {
+    fn next_element(&mut self) -> Option<Element> {
         loop {
             if let Some(blob) = &self.current_blob {
                 if ElementType::Node == self.current_element_type {
@@ -74,7 +95,8 @@ impl<R: Read + Send> Iterator for IterableReader<R> {
 }
 
 impl IterableReader<BufReader<File>> {
-    pub fn from_path(path: &str) -> anyhow::Result<Self> {
+    /// Creates a new `IterableReader` from a file path.
+    pub fn from_path<P: AsRef<Path>>(path: P) -> anyhow::Result<Self> {
         let pbf_reader = PbfReader::from_path(path)?;
         Ok(Self::new(pbf_reader))
     }

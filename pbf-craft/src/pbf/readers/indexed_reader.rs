@@ -20,7 +20,7 @@ fn get_index_path_from_pbf_path(pbf_path: &str) -> String {
     return index_path;
 }
 
-pub struct PbfIndex {
+struct PbfIndex {
     node_index: BTreeMap<i64, u64>,
     way_index: BTreeMap<i64, u64>,
     relation_index: BTreeMap<i64, u64>,
@@ -166,12 +166,53 @@ impl PbfIndex {
     }
 }
 
+/// A reader that provides indexed access to PBF file.
+///
+/// The `IndexedReader` struct allows for efficient random access to PBF file by using an index.
+/// It is generic over a type `T` that implements the `PbfRandomRead` trait, which provides the
+/// necessary methods for reading PBF data.
+///
+/// # Type Parameters
+///
+/// * `T` - A type that implements the `PbfRandomRead` trait, providing methods for random access
+///         reading of PBF data.
+///
+/// # Fields
+///
+/// * `pbf_reader` - An instance of type `T` that is used to read the PBF data.
+/// * `pbf_index` - An instance of `PbfIndex` that provides the index for efficient random access.
+///
+/// # Example
+///
+/// ```rust
+/// use pbf_craft::models::ElementType;
+/// use pbf_craft::pbf::readers::IndexedReader;
+///
+/// let mut indexed_reader = IndexedReader::from_path("path/to/osm.pbf").unwarp();
+/// let result = indexed_reader.find(&ElementType::Node, 12345678).unwrap();
+/// if let Some(ec) = result {
+///    println!("Found element: {:?}", ec);
+/// }
+/// ```
+///
+/// If you want to read elements of a PBF file frequently, then the version with caching
+/// will make reading more efficient
+///
+/// ```rust
+/// use pbf_craft::models::ElementType;
+/// use pbf_craft::pbf::readers::IndexedReader;
+///
+/// let mut indexed_reader = IndexedReader::from_path_with_cache("path/to/osm.pbf", 1000).unwarp();
+/// let element_list = indexed_reader.get_with_deps(&ElementType::Way, 12345678).unwrap();
+/// ```
+///
 pub struct IndexedReader<T: PbfRandomRead> {
     pbf_reader: T,
     pbf_index: PbfIndex,
 }
 
 impl IndexedReader<PbfReader<BufReader<File>>> {
+    /// Creates a new `IndexedReader` instance from a PBF file.
     pub fn from_path(pbf_file: &str) -> anyhow::Result<IndexedReader<PbfReader<BufReader<File>>>> {
         let pbf_index = PbfIndex::new(pbf_file)?;
         let pbf_reader = PbfReader::from_path(pbf_file)?;
@@ -183,6 +224,15 @@ impl IndexedReader<PbfReader<BufReader<File>>> {
 }
 
 impl IndexedReader<CachedReader> {
+    /// Creates a new `IndexedReader` instance from a PBF file with a cache.
+    ///
+    /// # Parameters
+    ///
+    /// * pbf_file - A path to the PBF file.
+    /// * cache_capacity - The capacity of the cache. The cache is used to store the parsed Blob from the PBF file.
+    ///                    By default, a Blob contains about 8000 elements. Please decide the appropriate capacity
+    ///                    according to your memory size.
+    ///
     pub fn from_path_with_cache(
         pbf_file: &str,
         cache_capacity: usize,
@@ -198,6 +248,7 @@ impl IndexedReader<CachedReader> {
 }
 
 impl<T: PbfRandomRead> IndexedReader<T> {
+    /// Finds an node by its ID.
     pub fn find_node(&mut self, node_id: i64) -> anyhow::Result<Option<Node>> {
         let has_offset = self.pbf_index.get_offset(&ElementType::Node, node_id);
         if has_offset.is_none() {
@@ -212,6 +263,10 @@ impl<T: PbfRandomRead> IndexedReader<T> {
         }
     }
 
+    /// Finds nodes by their IDs.
+    ///
+    /// `find_nodes` is more efficient than calling `find_node` multiple times when you have a batch of node IDs.
+    ///
     pub fn find_nodes(&mut self, node_ids: &[i64]) -> anyhow::Result<Vec<Node>> {
         let offsets: HashSet<u64> = node_ids
             .into_iter()
@@ -233,6 +288,7 @@ impl<T: PbfRandomRead> IndexedReader<T> {
         Ok(result)
     }
 
+    /// Finds a way by its ID.
     pub fn find_way(&mut self, way_id: i64) -> anyhow::Result<Option<Way>> {
         let has_offset = self.pbf_index.get_offset(&ElementType::Way, way_id);
         if has_offset.is_none() {
@@ -247,6 +303,10 @@ impl<T: PbfRandomRead> IndexedReader<T> {
         }
     }
 
+    /// Finds ways by their IDs.
+    ///
+    /// `find_ways` is more efficient than calling `find_way` multiple times when you have a batch of way IDs.
+    ///
     pub fn find_ways(&mut self, way_ids: &[i64]) -> anyhow::Result<Vec<Way>> {
         let offsets: HashSet<u64> = way_ids
             .into_iter()
@@ -268,6 +328,7 @@ impl<T: PbfRandomRead> IndexedReader<T> {
         Ok(result)
     }
 
+    /// Finds a relation by its ID.
     pub fn find_relation(&mut self, relation_id: i64) -> anyhow::Result<Option<Relation>> {
         let has_offset = self
             .pbf_index
@@ -287,6 +348,10 @@ impl<T: PbfRandomRead> IndexedReader<T> {
         }
     }
 
+    /// Finds relations by their IDs.
+    ///
+    /// `find_relations` is more efficient than calling `find_relation` multiple times when you have a batch of relation IDs.
+    ///
     pub fn find_relations(&mut self, relation_ids: &[i64]) -> anyhow::Result<Vec<Relation>> {
         let offsets: HashSet<u64> = relation_ids
             .into_iter()
@@ -308,6 +373,7 @@ impl<T: PbfRandomRead> IndexedReader<T> {
         Ok(result)
     }
 
+    /// Finds an element by its type and ID.
     pub fn find(
         &mut self,
         element_type: &ElementType,
@@ -339,6 +405,16 @@ impl<T: PbfRandomRead> IndexedReader<T> {
         Ok(Some(target))
     }
 
+    /// Finds an element with its dependencies.
+    ///
+    /// When you want to get a Way, this method will also return the Nodes that the Way contains.
+    /// When you want to get a Relation, this method will also return the Nodes, Ways, and Relations
+    /// that the Relation contains.
+    /// So, if you use this method to get a Node, it will be the same as calling `find_node`.
+    ///
+    /// It is highly recommended to use `IndexedReader::from_path_with_cache` to create an `IndexedReader` instance
+    /// when you need to read elements with dependencies frequently.
+    ///
     pub fn get_with_deps(
         &mut self,
         element_type: &ElementType,
@@ -372,10 +448,7 @@ impl<T: PbfRandomRead> IndexedReader<T> {
         Ok(result)
     }
 
-    fn get_relation_with_deps(
-        &mut self,
-        relation_id: i64,
-    ) -> anyhow::Result<Vec<Element>> {
+    fn get_relation_with_deps(&mut self, relation_id: i64) -> anyhow::Result<Vec<Element>> {
         let mut result = Vec::new();
 
         let relation = self.find_relation(relation_id)?;

@@ -27,7 +27,14 @@ use crate::pbf::codecs::block_decorators::{HeaderReader, PrimitiveReader};
 /// use pbf::readers::raw_reader::PbfReader;
 ///
 /// let reader = PbfReader::from_path("path/to/osm.pbf").unwrap();
-/// // Use the reader to process the PBF file
+/// reader.read(|header, element| {
+///     if let Some(header_reader) = header {
+///         // Process header
+///     }
+///     if let Some(element) = element {
+///         // Process element
+///     }
+/// }).unwrap();
 /// ```
 pub struct PbfReader<R: Read + Send> {
     blob_reader: BlobReader<R>,
@@ -72,6 +79,39 @@ impl<R: Read + Send> PbfReader<R> {
         }
     }
 
+    /// Reads and processes header and elements using the provided callback function.
+    ///
+    /// This is a single-threaded method where all elements are iterated over one by one
+    /// in the order recorded in the PBF file.
+    ///
+    /// # Arguments
+    ///
+    /// * `callback` - A mutable closure that takes two optional arguments:
+    ///     - `Option<HeaderReader>`: Some if a header is decoded, None otherwise.
+    ///     - `Option<Element>`: Some if an element is decoded, None otherwise.
+    ///
+    /// # Returns
+    ///
+    /// * `anyhow::Result<()>` - Returns an Ok result if all blobs are processed successfully,
+    ///   or an error if any blob decoding fails.
+    ///
+    /// # Errors
+    ///
+    /// This function will return an error if any PBF decoding fails.
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// let reader = PbfReader::from_path("path/to/osm.pbf").unwrap();
+    /// reader.read(|header, element| {
+    ///     if let Some(header_reader) = header {
+    ///         // Process header
+    ///     }
+    ///     if let Some(element) = element {
+    ///         // Process element
+    ///     }
+    /// }).unwrap();
+    /// ```
     pub fn read<F>(&mut self, mut callback: F) -> anyhow::Result<()>
     where
         F: FnMut(Option<HeaderReader>, Option<Element>),
@@ -91,6 +131,33 @@ impl<R: Read + Send> PbfReader<R> {
         Ok(())
     }
 
+    /// Finds elements in parallel.
+    ///
+    /// # Arguments
+    ///
+    /// * `inclination` - An optional reference to an `ElementType` that specifies the type of elements to find.
+    ///                   If `None`, all element types are considered.
+    /// * `callback` - A closure that takes a reference to an `Element` and returns a boolean indicating
+    ///                whether the element should be included in the result. The closure must be `Send` and `Sync`.
+    ///
+    /// # Returns
+    ///
+    /// * `anyhow::Result<Vec<Element>>` - Returns a vector of elements that match the criteria specified
+    ///   by the callback function. If an error occurs during PBF decoding, an error is returned.
+    ///
+    /// # Errors
+    ///
+    /// This function will return an error if any PBF decoding fails.
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// let reader = PbfReader::from_path("path/to/osm.pbf").unwrap();
+    /// let elements = reader.par_find(Some(&ElementType::Node), |element| {
+    ///     // Filter logic for nodes
+    ///     true
+    /// }).unwrap();
+    /// ```
     pub fn par_find<F>(
         self,
         inclination: Option<&ElementType>,

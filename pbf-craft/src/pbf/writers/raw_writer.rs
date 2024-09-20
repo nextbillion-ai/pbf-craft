@@ -14,6 +14,31 @@ use crate::pbf::proto::{fileformat, osmformat};
 
 const MAX_BLOCK_ITEM_LENGTH: usize = 8000;
 
+/// A writer for creating PBF files.
+///
+/// The `PbfWriter` struct provides functionality to write PBF data to an underlying writer.
+/// It supports writing elements in either dense or non-dense format and can include optional
+/// bounding box information.
+///
+/// Please note: According to the PBF specification, you should write the elements in the order of
+/// Node, Way, Relation, and for all elements of each type, the IDs should be written in the order
+/// of smallest to largest. PbfWriter writes elements in the order in which `write` is called, so it
+/// is up to the programmer to make sure that elements are written in the proper order.
+///
+/// # Type Parameters
+///
+/// * `W` - A type that implements the `Write` trait, which is used to write the PBF data.
+///
+/// # Example
+///
+/// ```rust
+/// use pbf_craft::models::{Element, Node};
+/// use pbf_craft::pbf::writers::PbfWriter;
+///
+/// let mut writer = PbfWriter::from_path("path/to/osm.pbf", true).unwrap();
+/// writer.write(Element::Node(Node::default())).unwrap();
+/// writer.finish().unwarp();
+/// ```
 pub struct PbfWriter<W: Write> {
     writer: W,
     use_dense: bool,
@@ -23,6 +48,13 @@ pub struct PbfWriter<W: Write> {
 }
 
 impl PbfWriter<BufWriter<File>> {
+    /// Creates a new `PbfWriter` from a file path.
+    ///
+    /// # Parameters
+    ///
+    /// * `path` - The path to the file to write the PBF data to.
+    /// * `use_dense` - A boolean value indicating whether to use dense format for writing nodes.
+    ///
     pub fn from_path<P: AsRef<Path>>(path: P, use_dense: bool) -> anyhow::Result<Self> {
         let f = File::create(path)?;
         let writer = BufWriter::new(f);
@@ -31,6 +63,14 @@ impl PbfWriter<BufWriter<File>> {
 }
 
 impl<W: Write> PbfWriter<W> {
+    /// Creates a new `PbfWriter` from an existing writer.
+    ///
+    /// # Parameters
+    ///
+    /// * `writer` - The writer to use for writing the PBF data. It should implement the `Write`
+    ///              trait, which is used to write the PBF data
+    /// * `use_dense` - A boolean value indicating whether to use dense format for writing nodes.
+    ///
     pub fn new(writer: W, use_dense: bool) -> PbfWriter<W> {
         Self {
             writer,
@@ -53,6 +93,10 @@ impl<W: Write> PbfWriter<W> {
         Ok(blob)
     }
 
+    /// Sets the bounding box for the PBF file.
+    ///
+    /// If you want to include a bounding box in the PBF file, you set it before writing any elements.
+    ///
     pub fn set_bbox(&mut self, bbox: Bound) {
         self.bbox = Some(bbox);
     }
@@ -84,6 +128,13 @@ impl<W: Write> PbfWriter<W> {
         Ok(())
     }
 
+    /// Writes an element.
+    ///
+    /// Please note: According to the PBF specification, you should write the elements in the order of
+    /// Node, Way, Relation, and for all elements of each type, the IDs should be written in the order
+    /// of smallest to largest. PbfWriter writes elements in the order in which `write` is called, so it
+    /// is up to the programmer to make sure that elements are written in the proper order.
+    ///
     pub fn write(&mut self, element: Element) -> anyhow::Result<()> {
         self.cache.push(element);
         if self.cache.len() >= MAX_BLOCK_ITEM_LENGTH {
@@ -121,6 +172,10 @@ impl<W: Write> PbfWriter<W> {
         Ok(())
     }
 
+    /// Finishes writing the PBF file.
+    ///
+    /// This method should be called after writing all elements to the PBF file.
+    ///
     pub fn finish(&mut self) -> anyhow::Result<()> {
         self.write_to_block()?;
         self.writer.flush()?;

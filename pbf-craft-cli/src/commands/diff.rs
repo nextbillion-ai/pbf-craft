@@ -55,10 +55,7 @@ impl DiffCommand {
             match (&source_element_cnt, &target_element_cnt) {
                 (Some(source_element), Some(target_element)) => {
                     match (source_element, target_element) {
-                        (
-                            Element::Node(source_element),
-                            Element::Node(target_element),
-                        ) => {
+                        (Element::Node(source_element), Element::Node(target_element)) => {
                             if source_element.id == target_element.id {
                                 if source_element != target_element {
                                     diff_csv
@@ -111,10 +108,7 @@ impl DiffCommand {
                                 .unwrap();
                             target_element_cnt = target.next();
                         }
-                        (
-                            Element::Way(source_element),
-                            Element::Way(target_element),
-                        ) => {
+                        (Element::Way(source_element), Element::Way(target_element)) => {
                             if source_element.id == target_element.id {
                                 if source_element != target_element {
                                     diff_csv
@@ -167,10 +161,7 @@ impl DiffCommand {
                                 .unwrap();
                             target_element_cnt = target.next();
                         }
-                        (
-                            Element::Relation(source_element),
-                            Element::Relation(target_element),
-                        ) => {
+                        (Element::Relation(source_element), Element::Relation(target_element)) => {
                             if source_element.id == target_element.id {
                                 if source_element != target_element {
                                     diff_csv

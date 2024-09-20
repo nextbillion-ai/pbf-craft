@@ -3,12 +3,12 @@ use base16ct;
 use md5::{Digest, Md5};
 use std::{fs, io, path};
 
-pub fn exists(filepath: &str) -> bool {
+pub(crate) fn exists(filepath: &str) -> bool {
     let file = path::Path::new(filepath);
     file.exists()
 }
 
-pub fn checksum(filepath: &str) -> anyhow::Result<String> {
+pub(crate) fn checksum(filepath: &str) -> anyhow::Result<String> {
     let mut file = fs::File::open(filepath)?;
     let mut hasher = Md5::new();
     let _ = io::copy(&mut file, &mut hasher)?;
