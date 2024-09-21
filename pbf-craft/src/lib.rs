@@ -60,10 +60,13 @@
 
 mod codecs;
 pub mod models;
-mod proto;
 pub mod readers;
 mod utils;
 pub mod writers;
+
+mod proto {
+    include!(concat!(env!("OUT_DIR"), "/mod.rs"));
+}
 
 #[macro_use]
 extern crate anyhow;
