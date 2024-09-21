@@ -4,7 +4,7 @@ use clap::Args;
 use colored_json::prelude::*;
 
 use pbf_craft::models::{Element, ElementType, Tag};
-use pbf_craft::pbf::readers::{IndexedReader, PbfReader};
+use pbf_craft::readers::{IndexedReader, PbfReader};
 
 #[derive(Args, Debug)]
 pub struct SearchCommand {

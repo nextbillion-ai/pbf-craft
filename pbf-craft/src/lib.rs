@@ -21,9 +21,9 @@
 //! Read PBF data from a file:
 //!
 //! ```rust
-//! use pbf::readers::raw_reader::PbfReader;
+//! use pbf_craft::readers::PbfReader;
 //!
-//! let reader = PbfReader::from_path("path/to/osm.pbf").unwrap();
+//! let mut reader = PbfReader::from_path("resources/andorra-latest.osm.pbf").unwrap();
 //! reader.read(|header, element| {
 //!     if let Some(header_reader) = header {
 //!         // Process header
@@ -38,9 +38,9 @@
 //!
 //! ```rust
 //! use pbf_craft::models::ElementType;
-//! use pbf_craft::pbf::readers::IndexedReader;
+//! use pbf_craft::readers::IndexedReader;
 //!
-//! let mut indexed_reader = IndexedReader::from_path_with_cache("path/to/osm.pbf", 1000).unwarp();
+//! let mut indexed_reader = IndexedReader::from_path_with_cache("resources/andorra-latest.osm.pbf", 1000).unwrap();
 //! let element_list = indexed_reader.get_with_deps(&ElementType::Way, 12345678).unwrap();
 //! ```
 //!
@@ -48,19 +48,22 @@
 //!
 //! ```rust
 //! use pbf_craft::models::{Element, Node};
-//! use pbf_craft::pbf::writers::PbfWriter;
+//! use pbf_craft::writers::PbfWriter;
 //!
-//! let mut writer = PbfWriter::from_path("path/to/osm.pbf", true).unwrap();
+//! let mut writer = PbfWriter::from_path("resources/output.osm.pbf", true).unwrap();
 //! writer.write(Element::Node(Node::default())).unwrap();
-//! writer.finish().unwarp();
+//! writer.finish().unwrap();
 //! ```
 //!
 
 #![feature(btree_cursors)]
 
+mod codecs;
 pub mod models;
-pub mod pbf;
+mod proto;
+pub mod readers;
 mod utils;
+pub mod writers;
 
 #[macro_use]
 extern crate anyhow;

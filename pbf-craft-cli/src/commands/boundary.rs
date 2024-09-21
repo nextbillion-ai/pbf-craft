@@ -2,7 +2,7 @@ use clap::Args;
 use geo::{self, ConvexHull, Geometry, Polygon};
 use geojson::Value;
 
-use pbf_craft::pbf::readers::PbfReader;
+use pbf_craft::readers::PbfReader;
 
 #[derive(Args)]
 pub struct BoundaryCommand {

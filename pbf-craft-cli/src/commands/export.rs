@@ -1,5 +1,5 @@
 use clap::Args;
-use pbf_craft::pbf::writers::PbfWriter;
+use pbf_craft::writers::PbfWriter;
 
 use crate::db::DatabaseReader;
 

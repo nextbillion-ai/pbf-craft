@@ -186,10 +186,10 @@ impl PbfIndex {
 ///
 /// ```rust
 /// use pbf_craft::models::ElementType;
-/// use pbf_craft::pbf::readers::IndexedReader;
+/// use pbf_craft::readers::IndexedReader;
 ///
-/// let mut indexed_reader = IndexedReader::from_path("path/to/osm.pbf").unwarp();
-/// let result = indexed_reader.find(&ElementType::Node, 12345678).unwrap();
+/// let mut indexed_reader = IndexedReader::from_path("resources/andorra-latest.osm.pbf").unwrap();
+/// let result = indexed_reader.find(&ElementType::Node, 4254529698).unwrap();
 /// if let Some(ec) = result {
 ///    println!("Found element: {:?}", ec);
 /// }
@@ -200,10 +200,10 @@ impl PbfIndex {
 ///
 /// ```rust
 /// use pbf_craft::models::ElementType;
-/// use pbf_craft::pbf::readers::IndexedReader;
+/// use pbf_craft::readers::IndexedReader;
 ///
-/// let mut indexed_reader = IndexedReader::from_path_with_cache("path/to/osm.pbf", 1000).unwarp();
-/// let element_list = indexed_reader.get_with_deps(&ElementType::Way, 12345678).unwrap();
+/// let mut indexed_reader = IndexedReader::from_path_with_cache("resources/andorra-latest.osm.pbf", 1000).unwrap();
+/// let element_list = indexed_reader.get_with_deps(&ElementType::Way, 1055523837).unwrap();
 /// ```
 ///
 pub struct IndexedReader<T: PbfRandomRead> {

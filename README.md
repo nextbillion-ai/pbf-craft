@@ -12,23 +12,14 @@ version of rust.
 - Written in pure Rust
 - Provides an indexing feature to the PBF to greatly improve read performance.
 
-## Usage
-
-Add this to your `Cargo.toml`:
-
-```toml
-[dependencies]
-pbf-craft = "0.1"
-```
-
 ## Example
 
-Read PBF data from a file:
+Reading a PBF file:
 
 ```rust
-use pbf::readers::raw_reader::PbfReader;
+use pbf_craft::readers::PbfReader;
 
-let reader = PbfReader::from_path("path/to/osm.pbf").unwrap();
+let mut reader = PbfReader::from_path("resources/andorra-latest.osm.pbf").unwrap();
 reader.read(|header, element| {
     if let Some(header_reader) = header {
         // Process header
@@ -39,23 +30,24 @@ reader.read(|header, element| {
 }).unwrap();
 ```
 
-Read PBF data with dependencies:
+Finding an element using the index feature. `IndexedReader` creates an index file for the PBF file, which allows you to quickly locate and retrieve an element when looking for it using its ID. `IndexedReader` has an cache option, with which you can fetch a element with its dependencies more efficiently.
 
 ```rust
 use pbf_craft::models::ElementType;
-use pbf_craft::pbf::readers::IndexedReader;
+use pbf_craft::readers::IndexedReader;
 
-let mut indexed_reader = IndexedReader::from_path_with_cache("path/to/osm.pbf", 1000).unwarp();
-let element_list = indexed_reader.get_with_deps(&ElementType::Way, 12345678).unwrap();
+let mut indexed_reader = IndexedReader::from_path_with_cache("resources/andorra-latest.osm.pbf", 1000).unwrap();
+let node = indexed_reader.find(&ElementType::Node, 12345678).unwrap();
+let element_list = indexed_reader.get_with_deps(&ElementType::Way, 1055523837).unwrap();
 ```
 
-Write PBF data to a file:
+Writing a PBF file:
 
 ```rust
 use pbf_craft::models::{Element, Node};
-use pbf_craft::pbf::writers::PbfWriter;
+use pbf_craft::writers::PbfWriter;
 
-let mut writer = PbfWriter::from_path("path/to/osm.pbf", true).unwrap();
+let mut writer = PbfWriter::from_path("resources/output.osm.pbf", true).unwrap();
 writer.write(Element::Node(Node::default())).unwrap();
-writer.finish().unwarp();
+writer.finish().unwrap();
 ```

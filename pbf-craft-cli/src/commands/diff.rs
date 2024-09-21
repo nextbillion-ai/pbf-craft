@@ -5,7 +5,7 @@ use csv;
 use serde::{Deserialize, Serialize};
 
 use pbf_craft::models::{Element, ElementType};
-use pbf_craft::pbf::readers::IterableReader;
+use pbf_craft::readers::IterableReader;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum DiffType {

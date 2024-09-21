@@ -2,11 +2,11 @@ use std::collections::HashMap;
 
 use super::field::FieldCodec;
 use crate::models::{
-    BaseElement, Bound, Element, ElementType, Node, OsmUser, Relation, RelationMember,
-    Tag, Way, WayNode,
+    BaseElement, Bound, Element, ElementType, Node, OsmUser, Relation, RelationMember, Tag, Way,
+    WayNode,
 };
-use crate::pbf::proto::osmformat;
-use crate::pbf::proto::osmformat::Relation_MemberType;
+use crate::proto::osmformat;
+use crate::proto::osmformat::Relation_MemberType;
 
 pub struct HeaderReader {
     header: osmformat::HeaderBlock,

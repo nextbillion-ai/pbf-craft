@@ -4,8 +4,8 @@ use std::io::{BufReader, Read, Seek};
 use byteorder::{self, ReadBytesExt};
 use flate2::read::ZlibDecoder;
 
-use crate::pbf::proto::fileformat::{Blob, BlobHeader};
-use crate::pbf::proto::osmformat::{HeaderBlock, PrimitiveBlock};
+use crate::proto::fileformat::{Blob, BlobHeader};
+use crate::proto::osmformat::{HeaderBlock, PrimitiveBlock};
 
 pub enum DecodedBlob {
     OsmHeader(HeaderBlock),

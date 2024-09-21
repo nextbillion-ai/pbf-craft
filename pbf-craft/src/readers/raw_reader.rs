@@ -6,9 +6,9 @@ use std::path::Path;
 use std::rc::Rc;
 
 use super::traits::{BlobData, PbfRandomRead};
+use crate::codecs::blob::{BlobReader, DecodedBlob};
+use crate::codecs::block_decorators::{HeaderReader, PrimitiveReader};
 use crate::models::{Element, ElementType};
-use crate::pbf::codecs::blob::{BlobReader, DecodedBlob};
-use crate::pbf::codecs::block_decorators::{HeaderReader, PrimitiveReader};
 
 /// A reader for Protocolbuffer Binary Format (PBF) files.
 ///
@@ -24,9 +24,9 @@ use crate::pbf::codecs::block_decorators::{HeaderReader, PrimitiveReader};
 /// # Example
 ///
 /// ```rust
-/// use pbf::readers::raw_reader::PbfReader;
+/// use pbf_craft::readers::PbfReader;
 ///
-/// let reader = PbfReader::from_path("path/to/osm.pbf").unwrap();
+/// let mut reader = PbfReader::from_path("resources/andorra-latest.osm.pbf").unwrap();
 /// reader.read(|header, element| {
 ///     if let Some(header_reader) = header {
 ///         // Process header
@@ -102,7 +102,9 @@ impl<R: Read + Send> PbfReader<R> {
     /// # Example
     ///
     /// ```rust
-    /// let reader = PbfReader::from_path("path/to/osm.pbf").unwrap();
+    /// use pbf_craft::readers::PbfReader;
+    ///
+    /// let mut reader = PbfReader::from_path("resources/andorra-latest.osm.pbf").unwrap();
     /// reader.read(|header, element| {
     ///     if let Some(header_reader) = header {
     ///         // Process header
@@ -152,7 +154,10 @@ impl<R: Read + Send> PbfReader<R> {
     /// # Example
     ///
     /// ```rust
-    /// let reader = PbfReader::from_path("path/to/osm.pbf").unwrap();
+    /// use pbf_craft::models::ElementType;
+    /// use pbf_craft::readers::PbfReader;
+    ///
+    /// let mut reader = PbfReader::from_path("resources/andorra-latest.osm.pbf").unwrap();
     /// let elements = reader.par_find(Some(&ElementType::Node), |element| {
     ///     // Filter logic for nodes
     ///     true

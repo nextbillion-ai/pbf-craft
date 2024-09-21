@@ -4,7 +4,7 @@ use protobuf::RepeatedField;
 
 use super::field::FieldCodec;
 use crate::models::{Element, ElementType, Node, Relation, Tag, Way};
-use crate::pbf::proto::osmformat;
+use crate::proto::osmformat;
 
 struct StringTableBuilder {
     strings: Vec<String>,
@@ -286,11 +286,7 @@ impl PrimitiveBuilder {
         self.block.primitivegroup.push(group);
     }
 
-    pub fn build(
-        mut self,
-        elements: Vec<Element>,
-        use_dense: bool,
-    ) -> osmformat::PrimitiveBlock {
+    pub fn build(mut self, elements: Vec<Element>, use_dense: bool) -> osmformat::PrimitiveBlock {
         let mut nodes = Vec::new();
         let mut ways = Vec::new();
         let mut relations = Vec::new();

@@ -1,4 +1,4 @@
-use crate::pbf::proto::osmformat::PrimitiveBlock;
+use crate::proto::osmformat::PrimitiveBlock;
 use chrono::{DateTime, Utc};
 
 pub struct FieldCodec {

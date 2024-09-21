@@ -20,9 +20,9 @@ use crate::models::{Element, ElementType};
 ///
 /// ```rust
 /// use pbf_craft::models::{Element, ElementType};
-/// use pbf_craft::pbf::readers::IterableReader;
+/// use pbf_craft::readers::IterableReader;
 ///
-/// let mut reader = IterableReader::from_path("path/to/file.pbf").unwrap();
+/// let mut reader = IterableReader::from_path("resources/andorra-latest.osm.pbf").unwrap();
 /// for element in reader {
 ///    // Process the element
 /// }

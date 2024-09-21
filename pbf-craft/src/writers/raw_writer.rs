@@ -8,9 +8,9 @@ use flate2::write::ZlibEncoder;
 use flate2::Compression;
 use protobuf::Message;
 
+use crate::codecs::block_builder::PrimitiveBuilder;
 use crate::models::{Bound, Element};
-use crate::pbf::codecs::block_builder::PrimitiveBuilder;
-use crate::pbf::proto::{fileformat, osmformat};
+use crate::proto::{fileformat, osmformat};
 
 const MAX_BLOCK_ITEM_LENGTH: usize = 8000;
 
@@ -33,11 +33,11 @@ const MAX_BLOCK_ITEM_LENGTH: usize = 8000;
 ///
 /// ```rust
 /// use pbf_craft::models::{Element, Node};
-/// use pbf_craft::pbf::writers::PbfWriter;
+/// use pbf_craft::writers::PbfWriter;
 ///
-/// let mut writer = PbfWriter::from_path("path/to/osm.pbf", true).unwrap();
+/// let mut writer = PbfWriter::from_path("resources/output.pbf", true).unwrap();
 /// writer.write(Element::Node(Node::default())).unwrap();
-/// writer.finish().unwarp();
+/// writer.finish().unwrap();
 /// ```
 pub struct PbfWriter<W: Write> {
     writer: W,

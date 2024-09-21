@@ -5,7 +5,7 @@ use colored_json::prelude::*;
 use serde_json;
 
 use pbf_craft::models::{Element, ElementType};
-use pbf_craft::pbf::readers::IndexedReader;
+use pbf_craft::readers::IndexedReader;
 
 #[derive(Args, Debug)]
 pub struct GetCommand {
