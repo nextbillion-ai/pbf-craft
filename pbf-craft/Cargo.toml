@@ -1,6 +1,6 @@
 [package]
 name = "pbf-craft"
-version = "0.9.0"
+version = "0.9.1"
 edition = "2021"
 authors = ["Lurker <cloverzero@gmail.com>"]
 repository = "https://github.com/nextbillion-ai/pbf-craft"
