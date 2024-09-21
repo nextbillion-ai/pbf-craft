@@ -6,7 +6,7 @@ use super::raw_reader::PbfReader;
 use super::traits::BlobData;
 use crate::models::{Element, ElementType};
 
-/// A reader that provides an iterable interface for reading PBF (Protocolbuffer Binary Format) data.
+/// A reader that provides an iterable interface for reading PBF data.
 ///
 /// The `IterableReader` struct allows for sequential reading of PBF data by iterating over blobs
 /// and elements. It is generic over a type `R` that implements the `Read` and `Send` traits, which

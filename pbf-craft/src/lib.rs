@@ -7,15 +7,6 @@
 //! Since this crate uses the btree_cursors feature, it requires you to use the **nightly**
 //! version of rust.
 //!
-//! # Modules
-//!
-//! * `models` - Contains data structures used in PBF processing.
-//! * `pbf` - Provides functionality for reading and writing PBF data.
-//!
-//! # Features
-//!
-//! * `btree_cursors` - Enables the use of BTree cursors for efficient data access.
-//!
 //! # Example
 //!
 //! Read PBF data from a file:
@@ -40,7 +31,8 @@
 //! use pbf_craft::models::ElementType;
 //! use pbf_craft::readers::IndexedReader;
 //!
-//! let mut indexed_reader = IndexedReader::from_path_with_cache("resources/andorra-latest.osm.pbf", 1000).unwrap();
+//! let mut indexed_reader =
+//!     IndexedReader::from_path_with_cache("resources/andorra-latest.osm.pbf", 1000).unwrap();
 //! let element_list = indexed_reader.get_with_deps(&ElementType::Way, 12345678).unwrap();
 //! ```
 //!
@@ -59,9 +51,12 @@
 #![feature(btree_cursors)]
 
 mod codecs;
+/// Contains models for elements of OpenStreetMap data.
 pub mod models;
+/// Contains readers for reading PBF data.
 pub mod readers;
 mod utils;
+/// Contains writers for writing PBF data.
 pub mod writers;
 
 mod proto {

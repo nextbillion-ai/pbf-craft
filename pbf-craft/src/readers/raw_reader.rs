@@ -10,7 +10,7 @@ use crate::codecs::blob::{BlobReader, DecodedBlob};
 use crate::codecs::block_decorators::{HeaderReader, PrimitiveReader};
 use crate::models::{Element, ElementType};
 
-/// A reader for Protocolbuffer Binary Format (PBF) files.
+/// A foundamental reader for PBF data.
 ///
 /// The `PbfReader` struct provides functionality to read and process PBF files,
 /// which are commonly used for storing OpenStreetMap (OSM) data. It wraps around
