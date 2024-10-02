@@ -225,6 +225,7 @@ impl DiffCommand {
                             diff_type: DiffType::Delete,
                         })
                         .unwrap();
+                    source_element_cnt = source.next();
                 }
                 (None, Some(target_element)) => {
                     let (element_type, element_id) = target_element.get_meta();
@@ -235,6 +236,7 @@ impl DiffCommand {
                             diff_type: DiffType::Add,
                         })
                         .unwrap();
+                    target_element_cnt = target.next();
                 }
                 (None, None) => break,
             }
