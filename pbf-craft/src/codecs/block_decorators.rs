@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use super::field::FieldCodec;
 use crate::models::{
-    BaseElement, Bound, Element, ElementType, Node, OsmUser, Relation, RelationMember, Tag, Way,
+    Bound, Element, ElementBase, ElementType, Node, OsmUser, Relation, RelationMember, Tag, Way,
     WayNode,
 };
 use crate::proto::osmformat;
@@ -217,8 +217,8 @@ impl PrimitiveReader {
         result
     }
 
-    fn build_base_element(&self, id: i64, tags: Vec<Tag>, info: &osmformat::Info) -> BaseElement {
-        BaseElement {
+    fn build_base_element(&self, id: i64, tags: Vec<Tag>, info: &osmformat::Info) -> ElementBase {
+        ElementBase {
             id,
             tags,
             version: info.get_version(),
@@ -259,7 +259,7 @@ impl PrimitiveReader {
                     let info = elm.get_info();
                     self.build_base_element(elm.get_id(), tags, info)
                 } else {
-                    BaseElement::new_with_tags(elm.get_id(), tags)
+                    ElementBase::new_with_tags(elm.get_id(), tags)
                 };
                 let mut node: Node = base_el.into();
                 node.latitude = self.decoder.decode_latitude(elm.get_lat());
@@ -277,7 +277,7 @@ impl PrimitiveReader {
                     let info = elm.get_info();
                     self.build_base_element(elm.get_id(), tags, info)
                 } else {
-                    BaseElement::new_with_tags(elm.get_id(), tags)
+                    ElementBase::new_with_tags(elm.get_id(), tags)
                 };
                 let mut way: Way = base_el.into();
 
@@ -322,7 +322,7 @@ impl PrimitiveReader {
                     let info = elm.get_info();
                     self.build_base_element(elm.get_id(), tags, info)
                 } else {
-                    BaseElement::new_with_tags(elm.get_id(), tags)
+                    ElementBase::new_with_tags(elm.get_id(), tags)
                 };
                 let mut relation: Relation = base_el.into();
                 relation.members = self.build_relation_members(
