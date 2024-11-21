@@ -57,7 +57,7 @@ impl FromStr for ElementType {
 }
 
 #[derive(Debug, Default)]
-pub struct BaseElement {
+pub struct ElementBase {
     pub id: i64,
     pub version: i32,
     pub timestamp: Option<DateTime<Utc>>,
@@ -67,7 +67,7 @@ pub struct BaseElement {
     pub tags: Vec<Tag>,
 }
 
-impl BaseElement {
+impl ElementBase {
     pub fn new_with_tags(id: i64, tags: Vec<Tag>) -> Self {
         Self {
             id,
@@ -97,8 +97,8 @@ pub struct Node {
     pub tags: Vec<Tag>,
 }
 
-impl From<BaseElement> for Node {
-    fn from(el: BaseElement) -> Self {
+impl From<ElementBase> for Node {
+    fn from(el: ElementBase) -> Self {
         Self {
             id: el.id,
             version: el.version,
@@ -125,8 +125,8 @@ pub struct Way {
     pub way_nodes: Vec<WayNode>,
 }
 
-impl From<BaseElement> for Way {
-    fn from(el: BaseElement) -> Self {
+impl From<ElementBase> for Way {
+    fn from(el: ElementBase) -> Self {
         Self {
             id: el.id,
             version: el.version,
@@ -177,8 +177,8 @@ pub struct Relation {
     pub members: Vec<RelationMember>,
 }
 
-impl From<BaseElement> for Relation {
-    fn from(el: BaseElement) -> Self {
+impl From<ElementBase> for Relation {
+    fn from(el: ElementBase) -> Self {
         Self {
             id: el.id,
             version: el.version,
@@ -197,4 +197,104 @@ pub struct RelationMember {
     pub member_id: i64,
     pub member_type: ElementType,
     pub role: String,
+}
+
+pub trait BasicElement {
+    fn get_id(&self) -> i64;
+    fn get_version(&self) -> i32;
+    fn get_timestamp(&self) -> Option<DateTime<Utc>>;
+    fn get_changeset_id(&self) -> i64;
+    fn is_visible(&self) -> bool;
+    fn get_tags(&self) -> &Vec<Tag>;
+    fn get_user(&self) -> Option<&OsmUser>;
+}
+
+impl BasicElement for Node {
+    fn get_id(&self) -> i64 {
+        self.id
+    }
+
+    fn get_version(&self) -> i32 {
+        self.version
+    }
+
+    fn get_timestamp(&self) -> Option<DateTime<Utc>> {
+        self.timestamp
+    }
+
+    fn get_changeset_id(&self) -> i64 {
+        self.changeset_id
+    }
+
+    fn is_visible(&self) -> bool {
+        self.visible
+    }
+
+    fn get_tags(&self) -> &Vec<Tag> {
+        &self.tags
+    }
+
+    fn get_user(&self) -> Option<&OsmUser> {
+        self.user.as_ref()
+    }
+}
+
+impl BasicElement for Way {
+    fn get_id(&self) -> i64 {
+        self.id
+    }
+
+    fn get_version(&self) -> i32 {
+        self.version
+    }
+
+    fn get_timestamp(&self) -> Option<DateTime<Utc>> {
+        self.timestamp
+    }
+
+    fn get_changeset_id(&self) -> i64 {
+        self.changeset_id
+    }
+
+    fn is_visible(&self) -> bool {
+        self.visible
+    }
+
+    fn get_tags(&self) -> &Vec<Tag> {
+        &self.tags
+    }
+
+    fn get_user(&self) -> Option<&OsmUser> {
+        self.user.as_ref()
+    }
+}
+
+impl BasicElement for Relation {
+    fn get_id(&self) -> i64 {
+        self.id
+    }
+
+    fn get_version(&self) -> i32 {
+        self.version
+    }
+
+    fn get_timestamp(&self) -> Option<DateTime<Utc>> {
+        self.timestamp
+    }
+
+    fn get_changeset_id(&self) -> i64 {
+        self.changeset_id
+    }
+
+    fn is_visible(&self) -> bool {
+        self.visible
+    }
+
+    fn get_tags(&self) -> &Vec<Tag> {
+        &self.tags
+    }
+
+    fn get_user(&self) -> Option<&OsmUser> {
+        self.user.as_ref()
+    }
 }
