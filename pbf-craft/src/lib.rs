@@ -49,6 +49,9 @@
 //!
 
 #![feature(btree_cursors)]
+#![feature(test)]
+
+extern crate test;
 
 mod codecs;
 /// Contains models for elements of OpenStreetMap data.

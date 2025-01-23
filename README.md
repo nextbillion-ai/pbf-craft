@@ -1,6 +1,6 @@
 # pbf-craft
 
-A Rust library and command-line tool for reading and writing OpenSteetMap PBF file format.
+A Rust library and command-line tool for reading and writing OpenStreetMap PBF file format.
 
 It contains a variety of PBF readers for a variety of scenarios. For example, a PBF
 reader with an index can locate and read elements more efficiently. It also provides
