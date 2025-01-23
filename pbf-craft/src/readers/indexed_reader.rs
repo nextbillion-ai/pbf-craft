@@ -518,6 +518,7 @@ impl<T: PbfRandomRead> IndexedReader<T> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use test::{black_box, Bencher};
 
     #[test]
     fn test_index_from_pbf_file() {
@@ -561,5 +562,33 @@ mod tests {
         } else {
             assert!(false);
         }
+    }
+
+    #[bench]
+    fn bench_find_without_cache(b: &mut Bencher) {
+        let pbf_file = "./resources/andorra-latest.osm.pbf";
+        let mut indexed_reader = IndexedReader::from_path(pbf_file).unwrap();
+
+        b.iter(|| {
+            // Inner closure, the actual test
+            for _ in 1..30 {
+                let target_op = indexed_reader.find(&ElementType::Node, 4254529698).unwrap();
+                target_op.unwrap();
+            }
+        });
+    }
+
+    #[bench]
+    fn bench_find_with_cache(b: &mut Bencher) {
+        let pbf_file = "./resources/andorra-latest.osm.pbf";
+        let mut indexed_reader = IndexedReader::from_path_with_cache(pbf_file, 10000).unwrap();
+
+        b.iter(|| {
+            // Inner closure, the actual test
+            for _ in 1..30 {
+                let target_op = indexed_reader.find(&ElementType::Node, 4254529698).unwrap();
+                target_op.unwrap();
+            }
+        });
     }
 }
